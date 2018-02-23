@@ -680,13 +680,13 @@ const runInFiberContext = function (testInterfaceFnNames, before, after, fnName,
         const origOnlyFn = origFn.only
         scope[fnName].only = wrapTestFunction(fnName + '.only', origOnlyFn, testInterfaceFnNames, before, after)
     }
-    
+
     /**
      * wrap it.P1 for the Mocha framework
      */
     if (typeof origFn.P1 === 'function') {
         var origOnlyFn = origFn.P1;
-        scope[fnName].P1 = _get__('wrapTestFunction')(fnName + '.P1', origOnlyFn, testInterfaceFnNames, before, after);
+        scope[fnName].P1 = wrapTestFunction(fnName + '.P1', origOnlyFn, testInterfaceFnNames, before, after);
     }
 
     /**
@@ -694,7 +694,7 @@ const runInFiberContext = function (testInterfaceFnNames, before, after, fnName,
      */
     if (typeof origFn.P2 === 'function') {
         var origOnlyFn = origFn.P2;
-        scope[fnName].P2 = _get__('wrapTestFunction')(fnName + '.P2', origOnlyFn, testInterfaceFnNames, before, after);
+        scope[fnName].P2 = wrapTestFunction(fnName + '.P2', origOnlyFn, testInterfaceFnNames, before, after);
     }
 }
 

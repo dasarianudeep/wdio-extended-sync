@@ -49,7 +49,7 @@ var SYNC_COMMANDS = ['domain', '_events', '_maxListeners', 'setMaxListeners', 'e
 
 var STACKTRACE_FILTER = /((wdio-sync\/)*(build\/index.js|node_modules\/fibers)|- - - - -)/g;
 var STACKTRACE_FILTER_FN = function STACKTRACE_FILTER_FN(e) {
-    return !e.match(_get__2('STACKTRACE_FILTER'));
+    return !e.match(_get__('STACKTRACE_FILTER'));
 };
 
 var commandIsRunning = false;
@@ -83,7 +83,7 @@ var sanitizeErrorMessage = function sanitizeErrorMessage(e) {
      * filter out stack traces to wdio-sync and fibers
      * and transform absolute path to relative
      */
-    stack = stack.filter(_get__2('STACKTRACE_FILTER_FN'));
+    stack = stack.filter(_get__('STACKTRACE_FILTER_FN'));
     stack = stack.map(function (e) {
         return '    ' + e.replace(cwd + '/', '').trim();
     });
@@ -152,7 +152,7 @@ var executeHooksWithArgs = function executeHooksWithArgs() {
 
     hooks = hooks.map(function (hook) {
         return new _promise2.default(function (resolve) {
-            var _commandIsRunning = _get__2('commandIsRunning');
+            var _commandIsRunning = _get__('commandIsRunning');
             var result = void 0;
 
             var execHook = function execHook() {
@@ -179,14 +179,14 @@ var executeHooksWithArgs = function executeHooksWithArgs() {
             /**
              * no need for fiber wrap in async mode
              */
-            if (_get__2('isAsync')()) {
+            if (_get__('isAsync')()) {
                 return execHook();
             }
 
             /**
              * after command hooks require additional Fiber environment
              */
-            return _get__2('Fiber')(execHook).run();
+            return _get__('Fiber')(execHook).run();
         });
     });
 
@@ -206,7 +206,7 @@ var wdioSync = global.wdioSync = function (fn, done) {
             args[_key] = arguments[_key];
         }
 
-        return _get__2('Fiber')(function () {
+        return _get__('Fiber')(function () {
             var result = fn.apply(_this, args);
 
             if (typeof done === 'function') {
@@ -225,7 +225,7 @@ var wdioSync = global.wdioSync = function (fn, done) {
  * @return {Function}   actual wrapped function
  */
 var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterCommand) {
-    if (_get__2('isAsync')()) {
+    if (_get__('isAsync')()) {
         /**
          * async command wrap
          */
@@ -248,10 +248,10 @@ var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterComm
             commandArgs[_key3] = arguments[_key3];
         }
 
-        var future = new (_get__2('Future'))();
+        var future = new (_get__('Future'))();
         var futureFailed = false;
 
-        if (_get__2('forcePromises')) {
+        if (_get__('forcePromises')) {
             return fn.apply(this, commandArgs);
         }
 
@@ -259,7 +259,7 @@ var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterComm
          * don't execute [before/after]Command hook if a command was executed
          * in these hooks (otherwise we will get into an endless loop)
          */
-        if (_get__2('commandIsRunning')) {
+        if (_get__('commandIsRunning')) {
             var commandPromise = fn.apply(this, commandArgs);
 
             /**
@@ -278,7 +278,7 @@ var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterComm
                     /**
                      * extend protoype of result so people can call browser.element(...).click()
                      */
-                    future.return(_get__2('applyPrototype').call(_this2, commandResult));
+                    future.return(_get__('applyPrototype').call(_this2, commandResult));
                 }, future.throw.bind(future));
                 return future.wait();
             } catch (e) {
@@ -301,7 +301,7 @@ var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterComm
         var lastCommandResult = this.lastResult;
         var commandResult = void 0,
             commandError = void 0;
-        _get__2('executeHooksWithArgs')(beforeCommand, [commandName, commandArgs]).then(function () {
+        _get__('executeHooksWithArgs')(beforeCommand, [commandName, commandArgs]).then(function () {
             /**
              * actual function was already executed in desired catch block
              */
@@ -312,17 +312,17 @@ var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterComm
             newInstance = fn.apply(_this2, commandArgs);
             return newInstance.then(function (result) {
                 commandResult = result;
-                return _get__2('executeHooksWithArgs')(afterCommand, [commandName, commandArgs, result]);
+                return _get__('executeHooksWithArgs')(afterCommand, [commandName, commandArgs, result]);
             }, function (e) {
                 commandError = e;
-                return _get__2('executeHooksWithArgs')(afterCommand, [commandName, commandArgs, null, e]);
+                return _get__('executeHooksWithArgs')(afterCommand, [commandName, commandArgs, null, e]);
             }).then(function () {
                 _assign__('commandIsRunning', false);
 
                 if (commandError) {
                     return future.throw(commandError);
                 }
-                _get__2('wrapCommands')(newInstance, beforeCommand, afterCommand);
+                _get__('wrapCommands')(newInstance, beforeCommand, afterCommand);
 
                 /**
                  * don't modify call result prototype
@@ -338,7 +338,7 @@ var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterComm
                     _this2.lastResult = lastCommandResult;
                 }
 
-                return future.return(_get__2('applyPrototype').call(newInstance, commandResult));
+                return future.return(_get__('applyPrototype').call(newInstance, commandResult));
             });
         });
 
@@ -353,7 +353,7 @@ var wrapCommand = function wrapCommand(fn, commandName, beforeCommand, afterComm
                 return fn.apply(this, commandArgs);
             }
 
-            e.stack = _get__2('sanitizeErrorMessage')(e);
+            e.stack = _get__('sanitizeErrorMessage')(e);
             throw e;
         }
     };
@@ -371,19 +371,19 @@ var applyPrototype = function applyPrototype(result, helperScope) {
     /**
      * don't overload result for none objects, arrays and buffer
      */
-    if (!result || typeof result !== 'object' || Array.isArray(result) && !_get__2('isElements')(result) && !_get__2('is$$')(result) || Buffer.isBuffer(result)) {
+    if (!result || typeof result !== 'object' || Array.isArray(result) && !_get__('isElements')(result) && !_get__('is$$')(result) || Buffer.isBuffer(result)) {
         return result;
     }
 
     var mapPrototype = function mapPrototype(el) {
         var newInstance = (0, _setPrototypeOf2.default)((0, _create2.default)(el), (0, _getPrototypeOf2.default)(_this3));
-        return _get__2('applyPrototype').call(newInstance, el, _this3);
+        return _get__('applyPrototype').call(newInstance, el, _this3);
     };
 
     /**
      * overload elements results
      */
-    if (_get__2('isElements')(result)) {
+    if (_get__('isElements')(result)) {
         result.value = result.value.map(function (el, i) {
             el.selector = result.selector;
             el.value = { ELEMENT: el.ELEMENT };
@@ -395,7 +395,7 @@ var applyPrototype = function applyPrototype(result, helperScope) {
     /**
      * overload $$ result
      */
-    if (_get__2('is$$')(result)) {
+    if (_get__('is$$')(result)) {
         return result.map(mapPrototype);
     }
 
@@ -409,7 +409,7 @@ var applyPrototype = function applyPrototype(result, helperScope) {
         for (var _iterator = (0, _getIterator3.default)((0, _keys2.default)((0, _getPrototypeOf2.default)(this))), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var commandName = _step.value;
 
-            if (result[commandName] || _get__2('SYNC_COMMANDS').indexOf(commandName) > -1) {
+            if (result[commandName] || _get__('SYNC_COMMANDS').indexOf(commandName) > -1) {
                 continue;
             }
 
@@ -449,7 +449,7 @@ var applyPrototype = function applyPrototype(result, helperScope) {
             delete result.status;
         }
 
-        result = _get__2('assign')(newResult, result);
+        result = _get__('assign')(newResult, result);
     }
 
     return result;
@@ -470,23 +470,23 @@ var wrapCommands = function wrapCommands(instance, beforeCommand, afterCommand) 
      */
     if (instance.isMultiremote) {
         instance.getInstances().forEach(function (browserName) {
-            _get__2('wrapCommands')(global[browserName], beforeCommand, afterCommand);
+            _get__('wrapCommands')(global[browserName], beforeCommand, afterCommand);
         });
     }
 
     (0, _keys2.default)((0, _getPrototypeOf2.default)(instance)).forEach(function (commandName) {
-        if (_get__2('SYNC_COMMANDS').indexOf(commandName) > -1) {
+        if (_get__('SYNC_COMMANDS').indexOf(commandName) > -1) {
             return;
         }
 
         var origFn = instance[commandName];
-        instance[commandName] = _get__2('wrapCommand').call(instance, origFn, commandName, beforeCommand, afterCommand);
+        instance[commandName] = _get__('wrapCommand').call(instance, origFn, commandName, beforeCommand, afterCommand);
     });
 
     /**
      * no need to overwrite addCommand in async mode
      */
-    if (_get__2('isAsync')()) {
+    if (_get__('isAsync')()) {
         return;
     }
 
@@ -529,7 +529,7 @@ var wrapCommands = function wrapCommands(instance, beforeCommand, afterCommand) 
          */
         if (fn.name === 'async') {
             addCommand(fnName, function () {
-                var state = _get__2('forcePromises');
+                var state = _get__('forcePromises');
                 _assign__('forcePromises', true);
 
                 for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
@@ -540,7 +540,7 @@ var wrapCommands = function wrapCommands(instance, beforeCommand, afterCommand) 
                 _assign__('forcePromises', state);
                 return res;
             }, forceOverwrite);
-            commandGroup[fnName] = _get__2('wrapCommand').call(commandGroup, commandGroup[fnName], fnName, beforeCommand, afterCommand);
+            commandGroup[fnName] = _get__('wrapCommand').call(commandGroup, commandGroup[fnName], fnName, beforeCommand, afterCommand);
             return;
         }
 
@@ -557,13 +557,13 @@ var wrapCommands = function wrapCommands(instance, beforeCommand, afterCommand) 
             }
 
             return new _promise2.default(function (resolve) {
-                var state = _get__2('forcePromises');
+                var state = _get__('forcePromises');
                 _assign__('forcePromises', false);
-                _get__2('wdioSync')(fn, resolve).apply(_this4, args);
+                _get__('wdioSync')(fn, resolve).apply(_this4, args);
                 _assign__('forcePromises', state);
             });
         };
-        instance[fnName] = _get__2('wrapCommand').call(commandGroup, commandGroup[fnName], commandName, beforeCommand, afterCommand);
+        instance[fnName] = _get__('wrapCommand').call(commandGroup, commandGroup[fnName], commandName, beforeCommand, afterCommand);
     };
 };
 
@@ -591,7 +591,7 @@ var executeSync = function executeSync(fn) {
             resolve(res);
         } catch (e) {
             if (repeatTest) {
-                return resolve(_get__2('executeSync')(fn, --repeatTest, args));
+                return resolve(_get__('executeSync')(fn, --repeatTest, args));
             }
 
             /**
@@ -601,7 +601,7 @@ var executeSync = function executeSync(fn) {
                 return reject(e);
             }
 
-            e.stack = e.stack.split('\n').filter(_get__2('STACKTRACE_FILTER_FN')).join('\n');
+            e.stack = e.stack.split('\n').filter(_get__('STACKTRACE_FILTER_FN')).join('\n');
             reject(e);
         }
     });
@@ -638,7 +638,7 @@ var executeAsync = function executeAsync(fn) {
      */
     if (error) {
         if (repeatTest) {
-            return _get__2('executeAsync')(fn, --repeatTest, args);
+            return _get__('executeAsync')(fn, --repeatTest, args);
         }
         return new _promise2.default(function (resolve, reject) {
             return reject(error);
@@ -659,10 +659,10 @@ var executeAsync = function executeAsync(fn) {
      */
     return result.catch(function (e) {
         if (repeatTest) {
-            return _get__2('executeAsync')(fn, --repeatTest, args);
+            return _get__('executeAsync')(fn, --repeatTest, args);
         }
 
-        e.stack = e.stack.split('\n').filter(_get__2('STACKTRACE_FILTER_FN')).join('\n');
+        e.stack = e.stack.split('\n').filter(_get__('STACKTRACE_FILTER_FN')).join('\n');
         return _promise2.default.reject(e);
     });
 };
@@ -697,17 +697,17 @@ var runHook = function runHook(hookFn, origFn, before, after) {
         // Print errors encountered in beforeHook and afterHook to console, but
         // don't propagate them to avoid failing the test. However, errors in
         // framework hook functions should fail the test, so propagate those.
-        return _get__2('executeHooksWithArgs')(before).catch(hookError('beforeHook')).then(function () {
+        return _get__('executeHooksWithArgs')(before).catch(hookError('beforeHook')).then(function () {
             /**
              * user wants handle async command using promises, no need to wrap in fiber context
              */
-            if (_get__2('isAsync')() || hookFn.name === 'async') {
-                return _get__2('executeAsync').call(_this6, hookFn, repeatTest, _get__2('filterSpecArgs')(hookArgs));
+            if (_get__('isAsync')() || hookFn.name === 'async') {
+                return _get__('executeAsync').call(_this6, hookFn, repeatTest, _get__('filterSpecArgs')(hookArgs));
             }
 
-            return new _promise2.default(_get__2('runSync').call(_this6, hookFn, repeatTest, _get__2('filterSpecArgs')(hookArgs)));
+            return new _promise2.default(_get__('runSync').call(_this6, hookFn, repeatTest, _get__('filterSpecArgs')(hookArgs)));
         }).then(function () {
-            return _get__2('executeHooksWithArgs')(after).catch(hookError('afterHook'));
+            return _get__('executeHooksWithArgs')(after).catch(hookError('afterHook'));
         });
     });
 };
@@ -726,13 +726,13 @@ var runSpec = function runSpec(specTitle, specFn, origFn) {
     /**
      * user wants handle async command using promises, no need to wrap in fiber context
      */
-    if (_get__2('isAsync')() || specFn.name === 'async') {
+    if (_get__('isAsync')() || specFn.name === 'async') {
         return origFn(specTitle, function async() {
             for (var _len7 = arguments.length, specArgs = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
                 specArgs[_key7] = arguments[_key7];
             }
 
-            return _get__2('executeAsync').call(this, specFn, repeatTest, _get__2('filterSpecArgs')(specArgs));
+            return _get__('executeAsync').call(this, specFn, repeatTest, _get__('filterSpecArgs')(specArgs));
         });
     }
 
@@ -741,7 +741,7 @@ var runSpec = function runSpec(specTitle, specFn, origFn) {
             specArgs[_key8] = arguments[_key8];
         }
 
-        return new _promise2.default(_get__2('runSync').call(this, specFn, repeatTest, _get__2('filterSpecArgs')(specArgs)));
+        return new _promise2.default(_get__('runSync').call(this, specFn, repeatTest, _get__('filterSpecArgs')(specArgs)));
     });
 };
 
@@ -755,8 +755,8 @@ function runSync(fn) {
     var args = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 
     return function (resolve, reject) {
-        return _get__2('Fiber')(function () {
-            return _get__2('executeSync').call(_this7, fn, repeatTest, args).then(function () {
+        return _get__('Fiber')(function () {
+            return _get__('executeSync').call(_this7, fn, repeatTest, args).then(function () {
                 return resolve();
             }, reject);
         }).run();
@@ -785,7 +785,7 @@ var wrapTestFunction = function wrapTestFunction(fnName, origFn, testInterfaceFn
         var specTitle = specArguments[0];
 
         if (testInterfaceFnNames.indexOf(fnName) > -1) {
-            if (specFn) return _get__2('runSpec')(specTitle, specFn, origFn, retryCnt);
+            if (specFn) return _get__('runSpec')(specTitle, specFn, origFn, retryCnt);
 
             /**
              * if specFn is undefined we are dealing with a pending function
@@ -793,7 +793,7 @@ var wrapTestFunction = function wrapTestFunction(fnName, origFn, testInterfaceFn
             return origFn(specTitle);
         }
 
-        return _get__2('runHook')(specFn, origFn, before, after, retryCnt);
+        return _get__('runHook')(specFn, origFn, before, after, retryCnt);
     };
 };
 
@@ -812,7 +812,7 @@ var runInFiberContext = function runInFiberContext(testInterfaceFnNames, before,
     var scope = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : global;
 
     var origFn = scope[fnName];
-    scope[fnName] = _get__2('wrapTestFunction')(fnName, origFn, testInterfaceFnNames, before, after);
+    scope[fnName] = _get__('wrapTestFunction')(fnName, origFn, testInterfaceFnNames, before, after);
 
     /**
      * support it.skip for the Mocha framework
@@ -826,7 +826,7 @@ var runInFiberContext = function runInFiberContext(testInterfaceFnNames, before,
      */
     if (typeof origFn.only === 'function') {
         var _origOnlyFn = origFn.only;
-        scope[fnName].only = _get__2('wrapTestFunction')(fnName + '.only', _origOnlyFn, testInterfaceFnNames, before, after);
+        scope[fnName].only = _get__('wrapTestFunction')(fnName + '.only', _origOnlyFn, testInterfaceFnNames, before, after);
     }
 
     /**
@@ -935,8 +935,8 @@ var _RewireAPI__ = {};
         });
     }
 
-    addPropertyToAPIObject('__get__', _get__2);
-    addPropertyToAPIObject('__GetDependency__', _get__2);
+    addPropertyToAPIObject('__get__', _get__);
+    addPropertyToAPIObject('__GetDependency__', _get__);
     addPropertyToAPIObject('__Rewire__', _set__);
     addPropertyToAPIObject('__set__', _set__);
     addPropertyToAPIObject('__reset__', _reset__);
@@ -944,7 +944,7 @@ var _RewireAPI__ = {};
     addPropertyToAPIObject('__with__', _with__);
 })();
 
-function _get__2(variableName) {
+function _get__(variableName) {
     var rewireData = _getRewiredData__();
 
     if (rewireData[variableName] === undefined) {
@@ -1061,7 +1061,7 @@ function _set_original__(variableName, _value) {
 }
 
 function _update_operation__(operation, variableName, prefix) {
-    var oldValue = _get__2(variableName);
+    var oldValue = _get__(variableName);
 
     var newValue = operation === '++' ? oldValue + 1 : oldValue - 1;
 
@@ -1131,8 +1131,8 @@ function _with__(object) {
     };
 }
 
-exports.__get__ = _get__2;
-exports.__GetDependency__ = _get__2;
+exports.__get__ = _get__;
+exports.__GetDependency__ = _get__;
 exports.__Rewire__ = _set__;
 exports.__set__ = _set__;
 exports.__ResetDependency__ = _reset__;
